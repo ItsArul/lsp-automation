@@ -146,10 +146,10 @@ read -p "Masukan nama database untuk wordpress: " user_db
 read -p "Masukan password untuk wordpress: " user_pw
 
 # Create Database For Wordpress
-echo "create database '${user_db}'; 
-create user '${user_wordpress}' identified by '${user_pw}'; 
-grant all privileges on ${user_db}. to '${user_wordpress}'@'localhost' identifed by '${user_pw}'; 
-flush privileges; " | mysql -u root
+echo "create database ${user_db}; 
+create user ${user_wordpress} identified by ${user_pw}; 
+grant all privileges on ${user_db}.* to '${user_wordpress}'@'localhost' identifed by '${user_pw}'; 
+flush privileges; " | mysql -u root -p 
 
 # Configure wp_config.php
 cp wp-config-sample.php wp-config.php
@@ -160,3 +160,14 @@ sed -i "define( 'DB_PASSWORD', 'password_here' );/define( 'DB_PASSWORD', '${user
 systemctl restart apache2
 echo -e "${GREEN_COLOR} Success Setup Wordpress"
 
+# Configure Database for PMA
+read -p "Masukan user untuk phpmyadmin: " user_pma
+read -p "Masukan password untuk phpmyadmin: "pw_pma
+read -p "Masukan database untuk phpmyadmin: " pma_db
+
+echo "create database ${pma_db};
+create user ${user_pma} identified by ${pw_pma};
+grant all privileges on ${pma_db}.* to '${user_pma}'@'localhost' identified by '${pw_pma}';
+flush privileges;" | mysql -u root -p 
+
+# Configure file phpmyadmin
