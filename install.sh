@@ -61,7 +61,6 @@ named_local="zone '$dns' {
     type master;
     file '/etc/bind/smk.int';
 };
-
 // Reverse-Lookup
 zone '$first_linux.in-addr.arpa' {
     type master;
@@ -71,7 +70,6 @@ zone '$first_linux.in-addr.arpa' {
 echo ";
 ; BIND reverse data file for local loopback interface
 ;
-
 $TTL	604800
 @	IN	SOA	$dns. root.$dns. (
 			      1		; Serial
@@ -118,28 +116,25 @@ echo "<VirtualHost *:80>
 	# value is not decisive as it is used as a last resort host regardless.
 	# However, you must set it for any further virtual host explicitly.
 	ServerName www.$dns
-
 	ServerAdmin webmaster@localhost
 	DocumentRoot /var/www/wordpress
 
+	Include /phpmyadmin /var/www/pma/
 	# Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
 	# error, crit, alert, emerg.
 	# It is also possible to configure the loglevel for particular
 	# modules, e.g.
 	#LogLevel info ssl:warn
-
 	ErrorLog ${APACHE_LOG_DIR}/error.log
 	CustomLog ${APACHE_LOG_DIR}/access.log combined
-
 	# For most configuration files from conf-available/, which are
 	# enabled or disabled at a global level, it is possible to
 	# include a line for only one particular virtual host. For example the
 	# following line enables the CGI configuration for this host only
 	#Include conf-available/serve-cgi-bin.conf
-
 </VirtualHost>" > /etc/apache2/sites-enabled/www.conf
 
-wget https://wordpress.org/latest.zip && unzip latest.zip /var/www/
+wget https://wordpress.org/latest.zip && unzip latest.zip -d /var/www/
 
 read -p "Masukan nama user untuk wordpress: " user_wordpress
 read -p "Masukan nama database untuk wordpress: " user_db
@@ -153,9 +148,9 @@ flush privileges; " | mysql -u root -p
 
 # Configure wp_config.php
 cp wp-config-sample.php wp-config.php
-sed -i "define( 'DB_NAME', 'database_name_here' );/define( 'DB_NAME', '${user_db}' );"
-sed -i "define( 'DB_USER', 'username_here' );/define( 'DB_USER', '${user_wordpress}' );"
-sed -i "define( 'DB_PASSWORD', 'password_here' );/define( 'DB_PASSWORD', '${user_pw}' );"
+sed -i "s/define( 'DB_NAME', 'database_name_here' );/define( 'DB_NAME', '${user_db}' );" /var/www/wordpress/wp-config.php
+sed -i "s/define( 'DB_USER', 'username_here' );/define( 'DB_USER', '${user_wordpress}' );" /var/www/wordpress/wp-config.php
+sed -i "s/define( 'DB_PASSWORD', 'password_here' );/define( 'DB_PASSWORD', '${user_pw}' );" /var/www/wordpress/wp-config.php
 
 systemctl restart apache2
 echo -e "${GREEN_COLOR} Success Setup Wordpress"
@@ -171,3 +166,13 @@ grant all privileges on ${pma_db}.* to '${user_pma}'@'localhost' identified by '
 flush privileges;" | mysql -u root -p 
 
 # Configure file phpmyadmin
+wget https://files.phpmyadmin.net/phpMyAdmin/5.2.0/phpMyAdmin-5.2.0-all-languages.zip
+mv phpMyAdmin-5.2.0-all-languages.zip pma.zip
+unzip pma.zip -d /var/www/ && mv /var/www/phpMyAdmin-5.2.0-all-languages /var/www/pma
+sed -i 's/$cfg["blowfish_secret"] = '';/$cfg["blowfish_secret"] = "1";' /var/www/pma/config.inc.php
+sed -i "s/// $cfg['Servers'][$i]['controluser'] = 'pma';/$cfg['Servers'][$i]['controluser'] = '${user_pma}';" /var/www/pma/config.inc.php
+sed -i "s/// $cfg['Servers'][$i]['controlpass'] = 'pmapass';/$cfg['Servers'][$i]['controlpass'] = '${pw_pma}';" /var/www/pma/config.inc.php
+sed -i "s/// $cfg['Servers'][$i]['pmadb'] = 'phpmyadmin';/$cfg['Servers'][$i]['pmadb'] = '${pma_db}';" /var/www/pma/config.inc.php
+
+systemctl restart apache2
+echo -e "${GREEN_COLOR} Success Setup PhpMyAdmin"
