@@ -15,39 +15,36 @@ rev_linux=$(echo $ip_linux | awk -F '.' '{print $4"."$3"."$2"."$1}'| cut  -d '.'
 rev_camera=$(echo $ip_camera | awk -F '.' '{print $4"."$3"."$2"."$1}'| cut  -d '.' -f 1)
 rev_briker=$(echo $ip_briker | awk -F '.' '{print $4"."$3"."$2"."$1}'| cut  -d '.' -f 1)
 
-repo_deb_11="deb http://repo.antix.or.id/debian bullseye main contrib non-free
+read -p "Do you want to insert repository ? (y/n): " yn
+ver_deb=$(cat  /etc/debian_version)
+if [[ $ver_deb > "11" ]]
+then
+    case $yn in
+        "y") echo "deb http://repo.antix.or.id/debian bullseye main contrib non-free
 deb-src http://repo.antix.or.id/debian bullseye main contrib non-free
 deb http://repo.antix.or.id/debian-security/ bullseye-security main contrib non-free
 deb-src http://repo.antix.or.id/debian-security/ bullseye-security main contrib non-free
 deb http://repo.antix.or.id/debian bullseye-updates main contrib non-free
-deb-src http://repo.antix.or.id/debian bullseye-updates main contrib non-free
-"
-
-rep_deb_10="deb http://kartolo.sby.datautama.net.id/debian/ buster main contrib non-free
-deb http://kartolo.sby.datautama.net.id/debian/ buster-updates main contrib non-free
-deb http://kartolo.sby.datautama.net.id/debian-security/ buster/updates main contrib non-free"
-
-read -p "Do you want to insert repository ? (y/n): " yn
-if [[ $(cat /etc/debian_version) > "10.10" ]]
-then
-    case $yn in
-        "y") echo "${repo_deb_11}" >> /etc/apt/sources.list
+deb-src http://repo.antix.or.id/debian bullseye-updates main contrib non-free" >> /etc/apt/sources.list && apt update -y
         ;;
-        "n") echo "Okayy, next stepp, auto updating package" && apt update -y
+        "n") echo "Okayy, next stepp, auto updating package"
         ;;
     esac
-else
+elif [[ $ver_deb < "11" ]]
+then
     case $yn in
-        "y") echo "${repo_deb_10}" >> /etc/apt/sources.list
+        "y") echo "deb http://kartolo.sby.datautama.net.id/debian/ buster main contrib non-free
+deb http://kartolo.sby.datautama.net.id/debian/ buster-updates main contrib non-free
+deb http://kartolo.sby.datautama.net.id/debian-security/ buster/updates main contrib non-free" >> /etc/apt/sources.list && apt update -y
         ;;
-        "n") echo "Okayy, next stepp, auto updating package" && apt update -y
+        "n") echo "Okayy, next stepp, auto updating package"
         ;;
     esac
 fi
 
 read -p "Do you want installation package for LSP ? (y/n): " yesno
 case $yesno in
-    "y") apt install apache2 wget unzip bind9 mariadb-server mariadb-client php apache2-utils libapache2-mod-php php-cli php-mysql
+    "y") apt install apache2 wget unzip bind9 mariadb-server mariadb-client php7.3 apache2-utils libapache2-mod-php7.3 php7.3-cli php7.3-mysql -y
     ;;
     "n") 
         echo "Okayy thankyou..."
@@ -141,38 +138,33 @@ read -p "Masukan nama database untuk wordpress: " user_db
 read -p "Masukan password untuk wordpress: " user_pw
 
 # Create Database For Wordpress
-echo "create database ${user_db}; 
-create user ${user_wordpress} identified by ${user_pw}; 
-grant all privileges on ${user_db}.* to '${user_wordpress}'@'localhost' identifed by '${user_pw}'; 
-flush privileges; " | mysql -u root -p 
+echo "create database $user_db;create user $user_wordpress identified by $user_pw;grant all privileges on $user_db.* to '$user_wordpress'@'localhost' identifed by '$user_pw';flush privileges; " | mysql -u root
 
 # Configure wp_config.php
-cp wp-config-sample.php wp-config.php
-sed -i "s/define( 'DB_NAME', 'database_name_here' );/define( 'DB_NAME', '${user_db}' );" /var/www/wordpress/wp-config.php
-sed -i "s/define( 'DB_USER', 'username_here' );/define( 'DB_USER', '${user_wordpress}' );" /var/www/wordpress/wp-config.php
-sed -i "s/define( 'DB_PASSWORD', 'password_here' );/define( 'DB_PASSWORD', '${user_pw}' );" /var/www/wordpress/wp-config.php
+cp /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php
+sed -i "s/define( 'DB_NAME', 'database_name_here' );/define( 'DB_NAME', '${user_db}' );/" /var/www/wordpress/wp-config.php
+sed -i "s/define( 'DB_USER', 'username_here' );/define( 'DB_USER', '${user_wordpress}' );/" /var/www/wordpress/wp-config.php
+sed -i "s/define( 'DB_PASSWORD', 'password_here' );/define( 'DB_PASSWORD', '${user_pw}' );/" /var/www/wordpress/wp-config.php
 
 systemctl restart apache2
 echo -e "${GREEN_COLOR} Success Setup Wordpress"
 
 # Configure Database for PMA
 read -p "Masukan user untuk phpmyadmin: " user_pma
-read -p "Masukan password untuk phpmyadmin: "pw_pma
+read -p "Masukan password untuk phpmyadmin: " pw_pma
 read -p "Masukan database untuk phpmyadmin: " pma_db
 
-echo "create database ${pma_db};
-create user ${user_pma} identified by ${pw_pma};
-grant all privileges on ${pma_db}.* to '${user_pma}'@'localhost' identified by '${pw_pma}';
-flush privileges;" | mysql -u root -p 
+echo "create database $pma_db;create user $user_pma identified by $pw_pma;grant all privileges on $pma_db.* to '$user_pma'@'localhost' identified by '$pw_pma';flush privileges;" | mysql -u root
 
 # Configure file phpmyadmin
 wget https://files.phpmyadmin.net/phpMyAdmin/5.2.0/phpMyAdmin-5.2.0-all-languages.zip
 mv phpMyAdmin-5.2.0-all-languages.zip pma.zip
 unzip pma.zip -d /var/www/ && mv /var/www/phpMyAdmin-5.2.0-all-languages /var/www/pma
-sed -i 's/$cfg["blowfish_secret"] = '';/$cfg["blowfish_secret"] = "1";' /var/www/pma/config.inc.php
-sed -i "s/// $cfg['Servers'][$i]['controluser'] = 'pma';/$cfg['Servers'][$i]['controluser'] = '${user_pma}';" /var/www/pma/config.inc.php
-sed -i "s/// $cfg['Servers'][$i]['controlpass'] = 'pmapass';/$cfg['Servers'][$i]['controlpass'] = '${pw_pma}';" /var/www/pma/config.inc.php
-sed -i "s/// $cfg['Servers'][$i]['pmadb'] = 'phpmyadmin';/$cfg['Servers'][$i]['pmadb'] = '${pma_db}';" /var/www/pma/config.inc.php
+mv /var/www/pma/config.sample.inc.php /var/www/pma/config.inc.php
+sed -i "s/$cfg["blowfish_secret"] = '';/$cfg["blowfish_secret"] = "1";/" /var/www/pma/config.inc.php
+sed -i "s/// $cfg['Servers'][$i]['controluser'] = 'pma';/$cfg['Servers'][$i]['controluser'] = '${user_pma}';/" /var/www/pma/config.inc.php
+sed -i "s/// $cfg['Servers'][$i]['controlpass'] = 'pmapass';/$cfg['Servers'][$i]['controlpass'] = '${pw_pma}';/" /var/www/pma/config.inc.php
+sed -i "s/// $cfg['Servers'][$i]['pmadb'] = 'phpmyadmin';/$cfg['Servers'][$i]['pmadb'] = '${pma_db}';/" /var/www/pma/config.inc.php
 
 systemctl restart apache2
-echo -e "${GREEN_COLOR} Success Setup PhpMyAdmin"
+echo -e "${GREEN_COLOR}Success Setup PhpMyAdmin"
