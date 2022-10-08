@@ -65,42 +65,42 @@ zone '$first_linux.in-addr.arpa' {
     file '/etc/bind/smk.rev';
 };"
 
-echo ";
+echo ';
 ; BIND reverse data file for local loopback interface
 ;
 $TTL	604800
-@	IN	SOA	$dns. root.$dns. (
+@	IN	SOA	'$dns'. root.'$dns'. (
 			      1		; Serial
 			 604800		; Refresh
 			  86400		; Retry
 			2419200		; Expire
 			 604800 )	; Negative Cache TTL
 ;
-@	        IN	NS	$dns.
-$rev_linux	IN	PTR	$dns.
-$rev_linux	IN	PTR	www.$dns.
-$rev_linux	IN	PTR	cacti.$dns.
-$rev_linux	IN	PTR	mail.$dns.
-$rev_camera	IN	PTR	cctv.$dns.
-$rev_briker	IN	PTR	voip.$dns."> /etc/bind/smk.rev
+@	        IN	NS	'$dns'.
+'$rev_linux'	IN	PTR	'$dns'.
+'$rev_linux'	IN	PTR	www.'$dns'.
+'$rev_linux'	IN	PTR	cacti.'$dns'.
+'$rev_linux'	IN	PTR	mail.'$dns'.
+'$rev_camera'	IN	PTR	cctv.'$dns'.
+'$rev_briker'	IN	PTR	voip.'$dns'.'> /etc/bind/smk.rev
 
-echo "; BIND data file for local loopback interface
+echo '; BIND data file for local loopback interface
 ;
 $TTL	604800
-@	IN	SOA	$dns. root.$dns. (
+@	IN	SOA '$dns'. root.'$dns'. (
 			      2		; Serial
 			 604800		; Refresh
 			  86400		; Retry
 			2419200		; Expire
 			 604800 )	; Negative Cache TTL
 ;
-@	    IN	NS	$dns.
-@	    IN	A	$ip_linux
-cacti	IN	A	$ip_linux
-mail   	IN	A	$ip_linux
-www 	IN	A	$ip_linux
-cctv	IN	A	$ip_camera
-voip	IN	A	$ip_briker" > /etc/bind/smk.int
+@	    IN	NS	'$dns'.
+@	    IN	A	'$ip_linux'
+cacti	IN	A	'$ip_linux'
+mail   	IN	A	'$ip_linux'
+www 	IN	A	'$ip_linux'
+cctv	IN	A	'$ip_camera'
+voip	IN	A	'$ip_briker'' > /etc/bind/smk.int
 
 systemctl restart bind9
 echo -e "${GREEN_COLOR} Success Setup DNS"
@@ -154,6 +154,12 @@ sed -i "s/define( 'DB_PASSWORD', 'password_here' );/define( 'DB_PASSWORD', '${us
 systemctl restart apache2
 echo -e "${GREEN_COLOR} Success Setup Wordpress"
 
+# Installation Package
+wget https://files.phpmyadmin.net/phpMyAdmin/5.2.0/phpMyAdmin-5.2.0-all-languages.zip
+mv phpMyAdmin-5.2.0-all-languages.zip pma.zip
+unzip pma.zip -d /var/www/ && mv /var/www/phpMyAdmin-5.2.0-all-languages /var/www/pma
+mv /var/www/pma/config.sample.inc.php /var/www/pma/config.inc.php
+
 # Configure Database for PMA
 read -p "Masukan user untuk phpmyadmin: " user_pma
 read -p "Masukan password untuk phpmyadmin: " pw_pma
@@ -166,10 +172,6 @@ echo "flush privileges;" >> pma.sql
 mysql -u root -p123 < pma.sql
 
 # Configure file phpmyadmin
-wget https://files.phpmyadmin.net/phpMyAdmin/5.2.0/phpMyAdmin-5.2.0-all-languages.zip
-mv phpMyAdmin-5.2.0-all-languages.zip pma.zip
-unzip pma.zip -d /var/www/ && mv /var/www/phpMyAdmin-5.2.0-all-languages /var/www/pma
-mv /var/www/pma/config.sample.inc.php /var/www/pma/config.inc.php
 sed -i "s/$cfg["blowfish_secret"] = '';/$cfg["blowfish_secret"] = "1";/" /var/www/pma/config.inc.php
 sed -i "s/// $cfg['Servers'][$i]['controluser'] = 'pma';/$cfg['Servers'][$i]['controluser'] = '${user_pma}';/" /var/www/pma/config.inc.php
 sed -i "s/// $cfg['Servers'][$i]['controlpass'] = 'pmapass';/$cfg['Servers'][$i]['controlpass'] = '${pw_pma}';/" /var/www/pma/config.inc.php
