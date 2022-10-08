@@ -15,6 +15,7 @@ rev_linux=$(echo $ip_linux | awk -F '.' '{print $4"."$3"."$2"."$1}'| cut  -d '.'
 rev_camera=$(echo $ip_camera | awk -F '.' '{print $4"."$3"."$2"."$1}'| cut  -d '.' -f 1)
 rev_briker=$(echo $ip_briker | awk -F '.' '{print $4"."$3"."$2"."$1}'| cut  -d '.' -f 1)
 
+
 read -p "Do you want to insert repository ? (y/n): " yn
 ver_deb=$(cat  /etc/debian_version)
 if [[ $ver_deb > "11" ]]
@@ -115,8 +116,8 @@ echo "<VirtualHost *:80>
 	ServerName www.$dns
 	ServerAdmin webmaster@localhost
 	DocumentRoot /var/www/wordpress
+	Alias /phpmyadmin /var/www/pma/
 
-	Include /phpmyadmin /var/www/pma/
 	# Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
 	# error, crit, alert, emerg.
 	# It is also possible to configure the loglevel for particular
@@ -138,7 +139,11 @@ read -p "Masukan nama database untuk wordpress: " user_db
 read -p "Masukan password untuk wordpress: " user_pw
 
 # Create Database For Wordpress
-echo "create database $user_db;create user $user_wordpress identified by $user_pw;grant all privileges on $user_db.* to '$user_wordpress'@'localhost' identifed by '$user_pw';flush privileges; " | mysql -u root
+echo "create database $user_db;" > wordpress.sql
+echo "create user '$user_wordpress' identified by '$user_pw';" >> wordpress.sql
+echo "grant all privileges on $user_db.* to '$user_wordpress'@'localhost' identified by '$user_pw';" >> wordpress.sql
+echo "flush privileges; " >> wordpress.sql
+mysql -u root -p123 < wordpress.sql
 
 # Configure wp_config.php
 cp /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php
@@ -154,7 +159,11 @@ read -p "Masukan user untuk phpmyadmin: " user_pma
 read -p "Masukan password untuk phpmyadmin: " pw_pma
 read -p "Masukan database untuk phpmyadmin: " pma_db
 
-echo "create database $pma_db;create user $user_pma identified by $pw_pma;grant all privileges on $pma_db.* to '$user_pma'@'localhost' identified by '$pw_pma';flush privileges;" | mysql -u root
+echo "create database $pma_db;" > pma.sql
+echo "create user '$user_pma' identified by '$pw_pma';" >> pma.sql
+echo "grant all privileges on $pma_db.* to '$user_pma'@'localhost' identified by '$pw_pma';" >> pma.sql
+echo "flush privileges;" >> pma.sql
+mysql -u root -p123 < pma.sql
 
 # Configure file phpmyadmin
 wget https://files.phpmyadmin.net/phpMyAdmin/5.2.0/phpMyAdmin-5.2.0-all-languages.zip
