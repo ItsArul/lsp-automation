@@ -98,6 +98,7 @@ $TTL	604800
 @	    IN	A	'$ip_linux'
 cacti	IN	A	'$ip_linux'
 mail   	IN	A	'$ip_linux'
+'$dns' 	IN 	MX 10 mail.'$dns'
 www 	IN	A	'$ip_linux'
 cctv	IN	A	'$ip_camera'
 voip	IN	A	'$ip_briker'' > /etc/bind/smk.int
@@ -157,8 +158,8 @@ echo -e "${GREEN_COLOR} Success Setup Wordpress"
 # Installation Package
 wget https://files.phpmyadmin.net/phpMyAdmin/5.2.0/phpMyAdmin-5.2.0-all-languages.zip
 mv phpMyAdmin-5.2.0-all-languages.zip pma.zip
-unzip pma.zip -d /var/www/ && mv /var/www/phpMyAdmin-5.2.0-all-languages /var/www/pma
-mv /var/www/pma/config.sample.inc.php /var/www/pma/config.inc.php
+unzip pma.zip -d /usr/share/ && mv /usr/share/phpMyAdmin-5.2.0-all-languages /usr/share/phpmyadmin
+mv /usr/share/phpmyadmin/config.sample.inc.php /usr/share/phpmyadmin/config.inc.php
 
 # Configure Database for PMA
 read -p "Masukan user untuk phpmyadmin: " user_pma
@@ -172,10 +173,33 @@ echo "flush privileges;" >> pma.sql
 mysql -u root -p123 < pma.sql
 
 # Configure file phpmyadmin
-sed -i "s/$cfg["blowfish_secret"] = '';/$cfg["blowfish_secret"] = "1";/" /var/www/pma/config.inc.php
-sed -i "s/// $cfg['Servers'][$i]['controluser'] = 'pma';/$cfg['Servers'][$i]['controluser'] = '${user_pma}';/" /var/www/pma/config.inc.php
-sed -i "s/// $cfg['Servers'][$i]['controlpass'] = 'pmapass';/$cfg['Servers'][$i]['controlpass'] = '${pw_pma}';/" /var/www/pma/config.inc.php
-sed -i "s/// $cfg['Servers'][$i]['pmadb'] = 'phpmyadmin';/$cfg['Servers'][$i]['pmadb'] = '${pma_db}';/" /var/www/pma/config.inc.php
+sed -i "/\/\/ \$cfg\['blowfish_secret'\] =/c\$cfg\['blowfish_secret'\] = '$mykey';" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['controlhost'\] = ''\;/c\$cfg\['Servers'\]\[\$i\]\['controlhost'\] = 'localhost'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['controlport'] = ''\;/c\$cfg\['Servers'\]\[\$i\]\['controlport'] = '3306'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['controluser'] = 'pma'\;/c\$cfg\['Servers'\]\[\$i\]\['controluser'] = '$user_pma'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['controlpass'] = 'pmapass'\;/c\$cfg\['Servers'\]\[\$i\]\['controlpass'] = '$pw_pma'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['pmadb'] = 'phpmyadmin'\;/c\$cfg\['Servers'\]\[\$i\]\['pmadb'] = '$pma_db'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['bookmarktable'] = 'pma_bookmark'\;/c\$cfg\['Servers'\]\[\$i\]\['bookmarktable'] = 'pma_bookmark'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['relation'] = 'pma_relation'\;/c\$cfg\['Servers'\]\[\$i\]\['relation'] = 'pma_relation'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['table_info'] = 'pma_table_info'\;/c\$cfg\['Servers'\]\[\$i\]\['table_info'] = 'pma_table_info'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['table_coords'] = 'pma_table_coords'\;/c\$cfg\['Servers'\]\[\$i\]\['table_coords'] = 'pma_table_coords'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['pdf_pages'] = 'pma_pdf_pages'\;/c\$cfg\['Servers'\]\[\$i\]\['pdf_pages'] = 'pma_pdf_pages'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['column_info'] = 'pma_column_info'\;/c\$cfg\['Servers'\]\[\$i\]\['column_info'] = 'pma_column_info'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['history'] = 'pma_history'\;/c\$cfg\['Servers'\]\[\$i\]\['history'] = 'pma_history'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['table_uiprefs'] = 'pma_table_uiprefs'\;/c\$cfg\['Servers'\]\[\$i\]\['table_uiprefs'] = 'pma_table_uiprefs'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['tracking'] = 'pma_tracking'\;/c\$cfg\['Servers'\]\[\$i\]\['tracking'] = 'pma_tracking'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['userconfig'] = 'pma_userconfig'\;/c\$cfg\['Servers'\]\[\$i\]\['userconfig'] = 'pma_userconfig'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['recent'] = 'pma_recent'\;/c\$cfg\['Servers'\]\[\$i\]\['recent'] = 'pma_recent'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['favorite'] = 'pma_favorite'\;/c\$cfg\['Servers'\]\[\$i\]\['favorite'] = 'pma_favorite'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['users'] = 'pma_users'\;/c\$cfg\['Servers'\]\[\$i\]\['users'] = 'pma_users'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['usergroups'] = 'pma_usergroups'\;/c\$cfg\['Servers'\]\[\$i\]\['usergroups'] = 'pma_usergroups'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['navigationhiding'] = 'pma_navigationhiding'\;/c\$cfg\['Servers'\]\[\$i\]\['navigationhiding'] = 'pma_navigationhiding'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['savedsearches'] = 'pma_savedsearches'\;/c\$cfg\['Servers'\]\[\$i\]\['savedsearches'] = 'pma_savedsearches'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['central_columns'] = 'pma_central_columns'\;/c\$cfg\['Servers'\]\[\$i\]\['central_columns'] = 'pma_central_columns'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['designer_settings'] = 'pma_designer_settings'\;/c\$cfg\['Servers'\]\[\$i\]\['designer_settings'] = 'pma_designer_settings'\;" /usr/share/phpmyadmin/config.inc.php
+sed -i "/\/\/ \$cfg\['Servers'\]\[\$i\]\['export_templates'] = 'pma_export_templates'\;/c\$cfg\['Servers'\]\[\$i\]\['export_templates'] = 'pma_export_templates'\;" /usr/share/phpmyadmin/config.inc.php
+echo "$cfg['TempDir'] = '/var/lib/phpmyadmin/tmp';" >> /usr/share/phpmyadmin/config.inc.php
 
 systemctl restart apache2
 echo -e "${GREEN_COLOR}Success Setup PhpMyAdmin"
+
