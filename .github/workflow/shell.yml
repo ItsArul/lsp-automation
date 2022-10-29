@@ -1,0 +1,21 @@
+name: Testing Code LSP Automation
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  shellchek-lsp:
+    name: Shellcheck LSP
+    runs-on: ubuntu-latest
+    steps:
+      - name: check kodingan LSP
+        uses: action/checkout@v2
+      - name: Run Shellcheck
+        uses: ludeeus/action-shellcheck@master
+      
+      - run: echo "Hello Welcome to Testing LSP Automation"
+      - run: echo "Jalan di ${{ runner.os }}"
+      - run: sh install.sh
+
+      - run: echo "Status Job ${{ job.status }}"
