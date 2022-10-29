@@ -45,7 +45,7 @@ fi
 
 read -p "Do you want installation package for LSP ? (y/n): " yesno
 case $yesno in
-    "y") apt install apache2 wget unzip bind9 mariadb-server mariadb-client php7.3 apache2-utils libapache2-mod-php7.3 php7.3-cli php7.3-mysql -y
+    "y") apt install apache2 wget unzip bind9 mariadb-server mariadb-client php apache2-utils libapache2-mod-php php-cli php-mysql -y &
     ;;
     "n") 
         echo "Okayy thankyou..."
